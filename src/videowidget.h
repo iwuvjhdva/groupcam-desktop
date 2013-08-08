@@ -17,9 +17,6 @@ private:
     QImage image;
     GLuint texture;
 
-    QGLShader *shader;
-    QGLShaderProgram *program;
-
     bool useFilter;
 
     int currentUserID;

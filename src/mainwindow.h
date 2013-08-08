@@ -2,7 +2,10 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QGridLayout>
 #include <QSettings>
+
+#include "common.h"
 
 #include "videowidget.h"
 
@@ -40,14 +43,16 @@ public:
     
 private:
     Ui::MainWindow *ui;
+    QGridLayout *layout;
 
     QSettings *settings;
 
     typedef QMap<int, TimerEvent> timers_t;
-    typedef QMap<TTInstance*, timers_t> instance_timers_t;
-    instance_timers_t timers;
+    timers_t timers;
 
     VideoWidget *videoWidget;
+
+    void timerEvent(QTimerEvent *event);
 };
 
 #endif // MAINWINDOW_H
