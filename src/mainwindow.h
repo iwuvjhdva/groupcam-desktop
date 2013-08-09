@@ -36,10 +36,10 @@ public:
     ~MainWindow();
 
     void killLocalTimer(TimerEvent e);
-    void connect();
+    void connectServer();
     void commandProcessing(int commandID, bool complete);
     void processTTMessage(const TTMessage& msg);
-    void disconnect();
+    void disconnectServer();
     
 private:
     Ui::MainWindow *ui;
@@ -49,6 +49,9 @@ private:
 
     typedef QMap<int, TimerEvent> timers_t;
     timers_t timers;
+
+    typedef QMap<int, CommandComplete> cmdreply_t;
+    cmdreply_t commands;
 
     VideoWidget *videoWidget;
 

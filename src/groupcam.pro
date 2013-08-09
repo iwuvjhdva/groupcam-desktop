@@ -13,12 +13,14 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    videowidget.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    videowidget.h
 
 FORMS    += mainwindow.ui
 
-LIBS += -L../../tt4sdk_debian6_i386/Client/ -lTeamTalk4
+LIBS += -L../../../tt4sdk_debian6_i386/Client/ -lTeamTalk4
 
-INCLUDEPATH +=  ../../tt4sdk_debian6_i386/Client/C-API
+INCLUDEPATH +=  ../../../tt4sdk_debian6_i386/Client/C-API

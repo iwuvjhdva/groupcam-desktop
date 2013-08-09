@@ -13,10 +13,8 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    layout = new QGridLayout(this);
     videoWidget = new VideoWidget(this);
-    layout->addWidget(videoWidget);
-    this->setLayout(layout);
+    this->centralWidget()->layout()->addWidget(videoWidget);
 
     if(ttInst != NULL)
         qDebug() << "Video instance initialized successfully";
@@ -26,7 +24,7 @@ MainWindow::MainWindow(QWidget *parent) :
     settings = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Bnei Baruch", "groupcam", 0);
     settings->setIniCodec("UTF-8");
 
-    connect();
+    connectServer();
 
     timers.insert(startTimer(1000), TIMER_ONE_SECOND);
     timers.insert(startTimer(50), TIMER_UI_UPDATE);
@@ -67,14 +65,13 @@ void MainWindow::timerEvent(QTimerEvent *event)
             break;
         case TIMER_RECONNECT:
             Q_ASSERT( (TT_GetFlags(ttInst) & CLIENT_CONNECTED) == 0);
-            disconnect();
-            connect();
+            disconnectServer();
+            connectServer();
             break;
     }
 }
 
-void MainWindow::connect():
-{
+void MainWindow::connectServer() {
     if(TT_GetFlags(ttInst) & CLIENT_CONNECTION)
         return;
 
@@ -98,7 +95,7 @@ void MainWindow::commandProcessing(int commandID, bool complete)
 {
     cmdreply_t::iterator ite;
 
-    if(complete && (ite = commands[ttInst].find(commandID)) != commands[ttInst].end())
+    if(complete && (ite = commands.find(commandID)) != commands.end())
     {
         switch(*ite)
         {
@@ -112,7 +109,7 @@ void MainWindow::commandProcessing(int commandID, bool complete)
                         int commandID = TT_DoJoinChannelByID(ttInst, channelID, _W(settings->value("server/channel_password").toString()));
 
                         if(commandID>0)
-                            commands[ttInst].insert(commandID, CMD_COMPLETE_JOINCHANNEL);
+                            commands.insert(commandID, CMD_COMPLETE_JOINCHANNEL);
 
                         qDebug() << QString("Joining the channel %1...").arg(path);
                     } else {
@@ -127,14 +124,14 @@ void MainWindow::commandProcessing(int commandID, bool complete)
     }
 }
 
-void MainWindow::processTTMessage(TTInstance *ttInst, const TTMessage& msg)
+void MainWindow::processTTMessage(const TTMessage& msg)
 {
     switch(msg.wmMsg)
     {
         case WM_TEAMTALK_CON_SUCCESS:
             {
                 // disable reconnect timer
-                killLocalTimer(ttInst, TIMER_RECONNECT);
+                killLocalTimer(TIMER_RECONNECT);
 
                 int commandID = TT_DoLogin(ttInst,
                         _W(settings->value("server/nickname").toString()),
@@ -143,17 +140,17 @@ void MainWindow::processTTMessage(TTInstance *ttInst, const TTMessage& msg)
                         _W(settings->value("server/password").toString())
                         );
                 if(commandID>0)
-                    commands[ttInst].insert(commandID, CMD_COMPLETE_LOGIN);
+                    commands.insert(commandID, CMD_COMPLETE_LOGIN);
 
                 qDebug() << "Connected to server";
             }
             break;
         case WM_TEAMTALK_CON_FAILED:
-            disconnect(ttInst);
+            disconnectServer();
             qDebug() << "Failed to connect to server";
             break;
         case WM_TEAMTALK_CON_LOST:
-            disconnect(ttInst);
+            disconnectServer();
             timers[startTimer(5000)] = TIMER_RECONNECT;
             qDebug() << "Connection to server lost, reconnecting...";
             break;
@@ -162,23 +159,22 @@ void MainWindow::processTTMessage(TTInstance *ttInst, const TTMessage& msg)
             break;
         case WM_TEAMTALK_CMD_MYSELF_LOGGEDOUT:
             qDebug() << "Logged out from server";
-            disconnect(ttInst);
+            disconnectServer();
             break;
         case WM_TEAMTALK_USER_VIDEOFRAME:
-            if(ttInst == ttVideoInst)
-                videoWidget->getUserFrame(msg.wParam, msg.lParam);
+            videoWidget->getUserFrame(msg.wParam, msg.lParam);
             break;
         case WM_TEAMTALK_CMD_PROCESSING:
-            commandProcessing(ttInst, msg.wParam, msg.lParam);
+            commandProcessing(msg.wParam, msg.lParam);
             break;
         case WM_TEAMTALK_CMD_ERROR:
             qDebug() << QString("Error performing the command (error code %1").arg(msg.wParam);
-            disconnect(ttInst);
+            disconnectServer();
             break;
     }
 }
 
-void MainWindow::disconnect() {
+void MainWindow::disconnectServer() {
     TT_Disconnect(ttInst);
 }
 

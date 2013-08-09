@@ -17,8 +17,6 @@ private:
     QImage image;
     GLuint texture;
 
-    bool useFilter;
-
     int currentUserID;
     void drawQuad();
 
