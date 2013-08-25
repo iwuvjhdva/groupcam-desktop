@@ -1,3 +1,5 @@
+#include <QDebug>
+
 #include <QPainter>
 #include <QLayout>
 
@@ -41,6 +43,8 @@ void VideoWidget::initializeGL()
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, param);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, param);
+
+    glEnable(GL_TEXTURE_RECTANGLE_ARB);
 }
 
 void VideoWidget::drawQuad()
@@ -70,10 +74,9 @@ void VideoWidget::paintGL()
     {
     } else
     {
-        GLenum target = GL_TEXTURE_2D;
-
-        glTexImage2D(target, 0, 4, image.width(), image.height(), 0, GL_BGRA, GL_UNSIGNED_BYTE, image.bits());
-        glBindTexture(target, texture);
+        glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA, image.width(), image.height(),
+                     0, GL_BGRA, GL_UNSIGNED_BYTE, image.bits());
+        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texture);
 
         drawQuad();
     }
@@ -92,7 +95,7 @@ void VideoWidget::resizeGL(int width, int height)
 
 void VideoWidget::getUserFrame(int userID, int framesCount)
 {
-    if(currentUserID && currentUserID!=userID)
+    if(currentUserID && currentUserID != userID)
         return;
     else
         currentUserID = userID;
