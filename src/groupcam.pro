@@ -14,10 +14,12 @@ TEMPLATE = app
 
 SOURCES += main.cpp\
         mainwindow.cpp \
-    videowidget.cpp
+    videowidget.cpp \
+    userwidget.cpp
 
 HEADERS  += mainwindow.h \
-    videowidget.h
+    videowidget.h \
+    userwidget.h
 
 FORMS    += mainwindow.ui
 

@@ -2,6 +2,9 @@
 #define VIDEOWIDGET_H
 
 #include <QGLWidget>
+#include <QHash>
+
+#include "userwidget.h"
 
 class VideoWidget : public QGLWidget
 {
@@ -14,11 +17,12 @@ public:
     void getUserFrame(int userID, int framesCount);
 
 private:
-    QImage image;
-    GLuint texture;
+    QHash <int, UserWidget> userWidgets;
 
-    int currentUserID;
+private:
     void drawQuad();
+    void drawUsers();
+    void drawTitle();
 
 protected:
     void initializeGL();
