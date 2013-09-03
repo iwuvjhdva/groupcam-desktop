@@ -21,6 +21,7 @@ private:
 
 private:
     void drawQuad();
+    void updateUsers();
     void drawUsers();
     void drawTitle();
 

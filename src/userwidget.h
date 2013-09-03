@@ -11,9 +11,9 @@ public:
     QPoint point;
 
 public:
-    UserWidget();
+    UserWidget(int id);
 
-    void update();
+    bool update();
 };
 
 #endif // USERWIDGET_H
