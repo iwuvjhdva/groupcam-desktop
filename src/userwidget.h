@@ -1,14 +1,16 @@
 #ifndef USERWIDGET_H
 #define USERWIDGET_H
 
+#include <QGLWidget>
+
 class UserWidget
 {
 public:
-    int id;
+    int userID;
     QString name;
     QImage image;
     GLuint texture;
-    QPoint point;
+    QRect rect;
 
 public:
     UserWidget(int id);

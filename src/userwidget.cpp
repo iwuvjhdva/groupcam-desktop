@@ -1,10 +1,12 @@
 #include "userwidget.h"
 
+#include "common.h"
+
 extern TTInstance* ttInst;
 
 UserWidget::UserWidget(int id)
 {
-    this->id = id;
+    this->userID = id;
 
     glGenTextures(1, &texture);
     glBindTexture(GL_TEXTURE_2D, texture);

@@ -17,10 +17,10 @@ public:
     void getUserFrame(int userID, int framesCount);
 
 private:
-    QHash <int, UserWidget> userWidgets;
+    QHash <int, UserWidget*> userWidgets;
 
 private:
-    void drawQuad();
+    void drawQuad(QImage &image, GLuint texture, QRect &rect);
     void updateUsers();
     void drawUsers();
     void drawTitle();
