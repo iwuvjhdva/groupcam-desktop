@@ -3,6 +3,7 @@
 
 #include <QGLWidget>
 #include <QHash>
+#include <QSettings>
 
 #include "userwidget.h"
 
@@ -11,12 +12,18 @@ class VideoWidget : public QGLWidget
     Q_OBJECT
 
 public:
-    VideoWidget(QWidget *parent);
+    VideoWidget(QWidget *parent, QSettings *settings);
     ~VideoWidget();
 
+    void removeUser(int userID);
     void getUserFrame(int userID, int framesCount);
 
 private:
+    QSettings *settings;
+    QImage titleImage;
+    GLuint titleTexture;
+    QRect titleRect;
+
     QHash <int, UserWidget*> userWidgets;
 
 private:

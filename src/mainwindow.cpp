@@ -13,7 +13,10 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    videoWidget = new VideoWidget(this);
+    settings = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Bnei Baruch", "groupcam", 0);
+    settings->setIniCodec("UTF-8");
+
+    videoWidget = new VideoWidget(this, settings);
     this->centralWidget()->layout()->addWidget(videoWidget);
 
     if(ttInst != NULL)
@@ -21,13 +24,14 @@ MainWindow::MainWindow(QWidget *parent) :
     else
         qCritical() << "Video instance initialization failed";
 
-    settings = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Bnei Baruch", "groupcam", 0);
-    settings->setIniCodec("UTF-8");
-
     connectServer();
 
     timers.insert(startTimer(1000), TIMER_ONE_SECOND);
     timers.insert(startTimer(50), TIMER_UI_UPDATE);
+
+    this->setFixedSize(settings->value("window/width", 640).toInt(),
+                       settings->value("window/height", 480).toInt());
+    this->centralWidget()->layout()->setContentsMargins(0, 0, 0, 0);
 }
 
 void MainWindow::killLocalTimer(TimerEvent e)
@@ -170,6 +174,10 @@ void MainWindow::processTTMessage(const TTMessage& msg)
         case WM_TEAMTALK_CMD_ERROR:
             qDebug() << QString("Error performing the command (error code %1").arg(msg.wParam);
             disconnectServer();
+            break;
+        case WM_TEAMTALK_CMD_USER_LOGGEDOUT:
+        case WM_TEAMTALK_CMD_USER_LEFT:
+            this->videoWidget->removeUser(msg.wParam);
             break;
     }
 }

@@ -11,9 +11,10 @@
 
 extern TTInstance* ttInst;
 
-VideoWidget::VideoWidget(QWidget *parent) :
+VideoWidget::VideoWidget(QWidget *parent, QSettings *settings) :
     QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
 {
+    this->settings = settings;
 }
 
 VideoWidget::~VideoWidget()
@@ -26,13 +27,13 @@ VideoWidget::~VideoWidget()
     }
 
     qDeleteAll(this->userWidgets.values());
+
+    glDeleteTextures(1, &titleTexture);
 }
 
 void VideoWidget::initializeGL()
 {
-    glClearColor(255, 0, 0, 0);
-
-    glEnable(GL_TEXTURE_2D);
+    glClearColor(0, 0, 0, 0);
 
     glViewport(0, 0, width(), height());
     glMatrixMode(GL_PROJECTION);
@@ -46,7 +47,32 @@ void VideoWidget::initializeGL()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
+    // Title texture
+    glGenTextures(1, &titleTexture);
+    glBindTexture(GL_TEXTURE_2D, titleTexture);
+
+    glEnable(GL_TEXTURE_2D);
     glEnable(GL_TEXTURE_RECTANGLE_ARB);
+
+    // Title
+    titleRect = QRect(0, 0, width(), height() * TITLE_HEIGHT_PERCENTS / 100.0);
+    titleImage = QImage(width(),
+                        height() * TITLE_HEIGHT_PERCENTS / 100.0,
+                        QImage::Format_RGB32);
+    titleImage.fill(Qt::blue);
+
+    QPainter painter;
+
+    painter.begin(&titleImage);
+    painter.setPen(Qt::white);
+    float factor = titleRect.width() / painter.fontMetrics().width("BB Scandinavia");
+    /*QRect fontBoundRect =
+               painter->fontMetrics().boundingRect(titleRect.toRect(), flags, text);*/
+    QFont font = painter.font();
+    font.setPointSizeF(font.pointSizeF()*factor);
+    painter.setFont(font);
+    painter.drawText(titleRect, "BB Scandinavia");
+    painter.end();
 }
 
 void VideoWidget::drawQuad(QImage &image, GLuint texture, QRect &rect)
@@ -74,10 +100,9 @@ void VideoWidget::drawQuad(QImage &image, GLuint texture, QRect &rect)
 
 void VideoWidget::drawTitle()
 {
-    QImage titleImage = QImage(this->width(),
-                          this->height() * TITLE_HEIGHT_PERCENTS / 100.0,
-                          QImage::Format_RGB32);
-
+    this->drawQuad(titleImage,
+                   titleTexture,
+                   titleRect);
 }
 
 void VideoWidget::updateUsers()
@@ -100,6 +125,10 @@ void VideoWidget::updateUsers()
                 this->height() * TITLE_HEIGHT_PERCENTS / 100.0;
 
         widget->rect = QRect(x, y, 320, 240);
+
+        int seconds = widget->updated.secsTo(QDateTime::currentDateTime());
+        if (seconds >= this->settings->value("user/timeout", 60).toInt())
+            this->userWidgets.remove(widget->userID);
     }
 }
 
@@ -111,6 +140,16 @@ void VideoWidget::drawUsers()
     {
         UserWidget *widget = iter.value();
         this->drawQuad(widget->image, widget->texture, widget->rect);
+    }
+}
+
+void VideoWidget::removeUser(int userID)
+{
+    if (this->userWidgets.contains(userID))
+    {
+        delete this->userWidgets[userID];
+        this->userWidgets.remove(userID);
+        this->update();
     }
 }
 
