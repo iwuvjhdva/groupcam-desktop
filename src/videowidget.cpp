@@ -2,6 +2,7 @@
 
 #include <QPainter>
 #include <QLayout>
+#include <qmath.h>
 
 #include "common.h"
 #include "constants.h"
@@ -107,27 +108,49 @@ void VideoWidget::drawTitle()
 
 void VideoWidget::updateUsers()
 {
-    int columnsNumber, rowsNumber;
-    int column = 0, row = 0;
+    if (this->userWidgets.isEmpty())
+        return;
 
-    // TODO: calc
-    columnsNumber = 2;
-    rowsNumber = 2;
+    int displayWidth = width();
+    int displayHeight = height() - titleRect.height();
 
-    // TODO: sort
+    float aspectRatio = (float)width() / height();
+
+    int pixelsTotal = displayWidth * displayHeight / this->userWidgets.count();
+
+    int widgetWidth = qRound(qSqrt((float)pixelsTotal * aspectRatio));
+    int widgetHeight = qRound(qSqrt((float)pixelsTotal / aspectRatio));
+
+    int columnsNumber = qRound((float)displayWidth / widgetWidth);
+    int rowsNumber = qRound((float)displayHeight / widgetHeight);
+
+    if (columnsNumber * widgetWidth > displayWidth)
+    {
+        widgetWidth = displayWidth / columnsNumber;
+        widgetHeight = widgetWidth / aspectRatio;
+    }
+
+    if (rowsNumber * widgetHeight > displayHeight)
+    {
+        widgetHeight = displayHeight / rowsNumber;
+        widgetWidth = widgetHeight * aspectRatio;
+    }
+
+    int left = width() - (displayWidth + widgetWidth * columnsNumber)/2;
+    int top = height() - (displayHeight + widgetHeight * rowsNumber)/2;
+
     QList <UserWidget*> widgetList = this->userWidgets.values();
 
     for(int index = 0; index < widgetList.size(); ++index)
     {
         UserWidget *widget = widgetList.at(index);
-        int x = index % columnsNumber  * 320;
-        int y = index / columnsNumber * 240 +
-                this->height() * TITLE_HEIGHT_PERCENTS / 100.0;
+        int x = left + (index % columnsNumber  * widgetWidth);
+        int y = top + index / columnsNumber * widgetHeight;
 
-        widget->rect = QRect(x, y, 320, 240);
+        widget->rect = QRect(x, y, widgetWidth, widgetHeight);
 
         int seconds = widget->updated.secsTo(QDateTime::currentDateTime());
-        if (seconds >= this->settings->value("user/timeout", 60).toInt())
+        if (seconds >= this->settings->value("user/timeout", 5).toInt())
             this->userWidgets.remove(widget->userID);
     }
 }

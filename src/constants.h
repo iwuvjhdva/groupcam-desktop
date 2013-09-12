@@ -3,4 +3,6 @@
 
 #define TITLE_HEIGHT_PERCENTS 20.0
 
+#define PADDING_PERCENTS 1.0
+
 #endif // CONSTANTS_H
