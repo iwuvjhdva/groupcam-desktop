@@ -32,6 +32,9 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setFixedSize(settings->value("window/width", 640).toInt(),
                        settings->value("window/height", 480).toInt());
     this->centralWidget()->layout()->setContentsMargins(0, 0, 0, 0);
+
+    userNameRegExp = new QRegExp(settings->value("user/name_regexp", ".*scandinavia.*").toString(),
+                                 Qt::CaseInsensitive);
 }
 
 void MainWindow::killLocalTimer(TimerEvent e)
@@ -166,7 +169,8 @@ void MainWindow::processTTMessage(const TTMessage& msg)
             disconnectServer();
             break;
         case WM_TEAMTALK_USER_VIDEOFRAME:
-            videoWidget->getUserFrame(msg.wParam, msg.lParam);
+            if (subscribedToUser(msg.wParam))
+                videoWidget->getUserFrame(msg.wParam, msg.lParam);
             break;
         case WM_TEAMTALK_CMD_PROCESSING:
             commandProcessing(msg.wParam, msg.lParam);
@@ -182,6 +186,13 @@ void MainWindow::processTTMessage(const TTMessage& msg)
     }
 }
 
+bool MainWindow::subscribedToUser(int userID)
+{
+    User user;
+    TT_GetUser(ttInst, userID, &user);
+    return userNameRegExp->exactMatch(_Q(user.szNickname));
+}
+
 void MainWindow::disconnectServer() {
     TT_Disconnect(ttInst);
 }
@@ -192,4 +203,5 @@ MainWindow::~MainWindow() {
     delete layout;
     delete ui;
     delete settings;
+    delete userNameRegExp;
 }

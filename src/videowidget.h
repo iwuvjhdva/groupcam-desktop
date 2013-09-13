@@ -28,6 +28,7 @@ private:
 
 private:
     void drawQuad(QImage &image, GLuint texture, QRect &rect);
+    void initTitle();
     void updateUsers();
     void drawUsers();
     void drawTitle();

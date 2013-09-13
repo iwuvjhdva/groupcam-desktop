@@ -55,7 +55,11 @@ void VideoWidget::initializeGL()
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_TEXTURE_RECTANGLE_ARB);
 
-    // Title
+    initTitle();
+}
+
+void VideoWidget::initTitle()
+{
     titleRect = QRect(0, 0, width(), height() * TITLE_HEIGHT_PERCENTS / 100.0);
     titleImage = QImage(width(),
                         height() * TITLE_HEIGHT_PERCENTS / 100.0,
@@ -63,16 +67,20 @@ void VideoWidget::initializeGL()
     titleImage.fill(Qt::blue);
 
     QPainter painter;
+    QString text = this->settings->value("title", "BB Scandinavia").toString();
 
     painter.begin(&titleImage);
     painter.setPen(Qt::white);
-    float factor = titleRect.width() / painter.fontMetrics().width("BB Scandinavia");
-    /*QRect fontBoundRect =
-               painter->fontMetrics().boundingRect(titleRect.toRect(), flags, text);*/
+    int textWidth = painter.fontMetrics().width(text);
+    float factor = titleRect.width() / textWidth;
     QFont font = painter.font();
     font.setPointSizeF(font.pointSizeF()*factor);
     painter.setFont(font);
-    painter.drawText(titleRect, "BB Scandinavia");
+
+    int newTextWidth = painter.fontMetrics().width(text);
+    QRect fontBoundRect = QRect(titleRect.width() - (titleRect.width() + newTextWidth) / 2, 0,
+                          newTextWidth, titleRect.height());
+    painter.drawText(fontBoundRect, text);
     painter.end();
 }
 
