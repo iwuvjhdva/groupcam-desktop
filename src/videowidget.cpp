@@ -112,7 +112,8 @@ void VideoWidget::updateUsers()
         return;
 
     int displayWidth = width();
-    int displayHeight = height() - titleRect.height();
+    int padding = height() * PADDING_PERCENTS/100.;
+    int displayHeight = height() - titleRect.height() - padding * 2;
 
     float aspectRatio = (float)width() / height();
 
@@ -137,7 +138,7 @@ void VideoWidget::updateUsers()
     }
 
     int left = width() - (displayWidth + widgetWidth * columnsNumber)/2;
-    int top = height() - (displayHeight + widgetHeight * rowsNumber)/2;
+    int top = height() - (displayHeight + widgetHeight * rowsNumber)/2 - padding;
 
     QList <UserWidget*> widgetList = this->userWidgets.values();
 
