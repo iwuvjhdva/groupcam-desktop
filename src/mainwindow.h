@@ -37,6 +37,7 @@ public:
 
     void killLocalTimer(TimerEvent e);
     void connectServer();
+    void startBroadcast();
     void commandProcessing(int commandID, bool complete);
     void processTTMessage(const TTMessage& msg);
     void disconnectServer();

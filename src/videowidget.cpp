@@ -67,7 +67,7 @@ void VideoWidget::initTitle()
     titleImage.fill(Qt::blue);
 
     QPainter painter;
-    QString text = this->settings->value("user/title", "BB Scandinavia").toString();
+    QString text = this->settings->value("video/title", "BB Scandinavia").toString();
 
     painter.begin(&titleImage);
     painter.setPen(Qt::white);
@@ -164,7 +164,7 @@ void VideoWidget::updateUsers()
         widget->rect = QRect(x, y, widgetWidth, widgetHeight);
 
         int seconds = widget->updated.secsTo(QDateTime::currentDateTime());
-        if (seconds >= this->settings->value("user/timeout", 5).toInt())
+        if (seconds >= this->settings->value("video/user_timeout", 5).toInt())
             this->userWidgets.remove(widget->userID);
     }
 }
@@ -212,23 +212,6 @@ void VideoWidget::resizeGL(int width, int height)
 
 void VideoWidget::getUserFrame(int userID, int framesCount)
 {
-
-
-    int devicesNumber = 0;
-    TT_GetVideoCaptureDevices(ttInst, NULL, &devicesNumber);
-    qDebug() << "Devices number: " << devicesNumber;
-
-    if (devicesNumber)
-    {
-        VideoCaptureDevice *videoDevices = new VideoCaptureDevice[devicesNumber];
-        TT_GetVideoCaptureDevices(ttInst, videoDevices, &devicesNumber);
-        for (int i = 0; i < devicesNumber; i++)
-        {
-            qDebug() << _Q(videoDevices[i].szDeviceID);
-            qDebug() << _Q(videoDevices[i].szDeviceName);
-        }
-    }
-
     Q_UNUSED(framesCount);
 
     UserWidget *userWidget;

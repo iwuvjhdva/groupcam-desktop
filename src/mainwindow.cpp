@@ -35,11 +35,11 @@ MainWindow::MainWindow(QWidget *parent) :
                        settings->value("window/height", 480).toInt());
     this->setFixedSize(this->sizeHint());
 
-    QString s = settings->value("user/name_regexp", ".*scandinavia.*").toString();
-    userNameRegExp = new QRegExp(settings->value("user/name_regexp", ".*scandinavia.*").toString(),
+    userNameRegExp = new QRegExp(settings->value("video/username_regexp", ".*scandinavia.*").toString(),
                                  Qt::CaseInsensitive);
 
     qDebug() << "Window ID: " << this->videoWidget->winId();
+    startBroadcast();
 }
 
 void MainWindow::killLocalTimer(TimerEvent e)
@@ -101,6 +101,50 @@ void MainWindow::connectServer() {
             settings->value("server/udp_port").toInt(),
             0, 0
             );
+}
+
+void MainWindow::startBroadcast()
+{
+    int devicesNumber = 0;
+    TT_GetVideoCaptureDevices(ttInst, NULL, &devicesNumber);
+    qDebug() << "Devices number: " << devicesNumber;
+
+    QString deviceName = settings->value("video/device", "/dev/video0").toString();
+    TTCHAR *deviceID = NULL;
+
+    if (devicesNumber)
+    {
+        VideoCaptureDevice *videoDevices = new VideoCaptureDevice[devicesNumber];
+        TT_GetVideoCaptureDevices(ttInst, videoDevices, &devicesNumber);
+        for (int i = 0; i < devicesNumber; i++)
+            if (_Q(videoDevices[i].szDeviceID).startsWith(deviceName))
+                deviceID = videoDevices[i].szDeviceID;
+    }
+
+    if (!deviceID)
+        qDebug() << QString("Device \"%1\" not found").arg(deviceName);
+    else
+    {
+        VideoCodec codec;
+        codec.nCodec = THEORA_CODEC;
+        codec.theora.nQuality = settings->value("video/quality", 20).toInt();
+        codec.theora.nTargetBitRate = 0;
+
+        CaptureFormat format;
+        format.nWidth = settings->value("video/width", 320).toInt();
+        format.nHeight = settings->value("video/height", 240).toInt();
+        format.nFPS_Numerator = settings->value("video/fps", 1).toInt();
+        format.nFPS_Denominator = 1;
+        format.picFourCC = FOURCC_RGB32;
+
+        if(TT_InitVideoCaptureDevice(ttInst, deviceID, &format, &codec))
+        {
+            TT_EnableTransmission(ttInst, TRANSMIT_VIDEO, true);
+            qDebug() << "Broadcast started";
+        } else {
+            qDebug() << "Error starting broadcast";
+        }
+    }
 }
 
 void MainWindow::commandProcessing(int commandID, bool complete)
