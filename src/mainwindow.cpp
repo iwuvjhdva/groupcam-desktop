@@ -1,5 +1,6 @@
 #include <QDebug>
 
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
@@ -29,12 +30,16 @@ MainWindow::MainWindow(QWidget *parent) :
     timers.insert(startTimer(1000), TIMER_ONE_SECOND);
     timers.insert(startTimer(50), TIMER_UI_UPDATE);
 
-    this->setFixedSize(settings->value("window/width", 640).toInt(),
-                       settings->value("window/height", 480).toInt());
     this->centralWidget()->layout()->setContentsMargins(0, 0, 0, 0);
+    videoWidget->setFixedSize(settings->value("window/width", 640).toInt(),
+                       settings->value("window/height", 480).toInt());
+    this->setFixedSize(this->sizeHint());
 
+    QString s = settings->value("user/name_regexp", ".*scandinavia.*").toString();
     userNameRegExp = new QRegExp(settings->value("user/name_regexp", ".*scandinavia.*").toString(),
                                  Qt::CaseInsensitive);
+
+    qDebug() << "Window ID: " << this->videoWidget->winId();
 }
 
 void MainWindow::killLocalTimer(TimerEvent e)
@@ -182,6 +187,8 @@ void MainWindow::processTTMessage(const TTMessage& msg)
         case WM_TEAMTALK_CMD_USER_LOGGEDOUT:
         case WM_TEAMTALK_CMD_USER_LEFT:
             this->videoWidget->removeUser(msg.wParam);
+            break;
+        default:
             break;
     }
 }

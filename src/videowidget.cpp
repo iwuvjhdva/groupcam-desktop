@@ -67,20 +67,25 @@ void VideoWidget::initTitle()
     titleImage.fill(Qt::blue);
 
     QPainter painter;
-    QString text = this->settings->value("title", "BB Scandinavia").toString();
+    QString text = this->settings->value("user/title", "BB Scandinavia").toString();
 
     painter.begin(&titleImage);
     painter.setPen(Qt::white);
-    int textWidth = painter.fontMetrics().width(text);
-    float factor = titleRect.width() / textWidth;
+
+    QRect textRect = painter.fontMetrics().boundingRect(text);
+
+    float factor = qMin((float)titleRect.width() / textRect.width(),
+                        (float)titleRect.height() / textRect.height());
+
     QFont font = painter.font();
-    font.setPointSizeF(font.pointSizeF()*factor);
+    font.setPointSizeF(font.pointSizeF() * factor);
     painter.setFont(font);
 
-    int newTextWidth = painter.fontMetrics().width(text);
-    QRect fontBoundRect = QRect(titleRect.width() - (titleRect.width() + newTextWidth) / 2, 0,
-                          newTextWidth, titleRect.height());
-    painter.drawText(fontBoundRect, text);
+    QRect newTextRect = painter.fontMetrics().boundingRect(text);
+    QRect boundingRect = QRect(titleRect.width() - (titleRect.width() + newTextRect.width()) / 2,
+                         titleRect.height() - (titleRect.height() + newTextRect.height()) / 2,
+                         width(), titleRect.height());
+    painter.drawText(boundingRect, text);
     painter.end();
 }
 
@@ -207,6 +212,23 @@ void VideoWidget::resizeGL(int width, int height)
 
 void VideoWidget::getUserFrame(int userID, int framesCount)
 {
+
+
+    int devicesNumber = 0;
+    TT_GetVideoCaptureDevices(ttInst, NULL, &devicesNumber);
+    qDebug() << "Devices number: " << devicesNumber;
+
+    if (devicesNumber)
+    {
+        VideoCaptureDevice *videoDevices = new VideoCaptureDevice[devicesNumber];
+        TT_GetVideoCaptureDevices(ttInst, videoDevices, &devicesNumber);
+        for (int i = 0; i < devicesNumber; i++)
+        {
+            qDebug() << _Q(videoDevices[i].szDeviceID);
+            qDebug() << _Q(videoDevices[i].szDeviceName);
+        }
+    }
+
     Q_UNUSED(framesCount);
 
     UserWidget *userWidget;
