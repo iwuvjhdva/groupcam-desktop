@@ -20,7 +20,8 @@ SOURCES += main.cpp\
 HEADERS  += mainwindow.h \
     videowidget.h \
     userwidget.h \
-    constants.h
+    constants.h \
+    common.h
 
 FORMS    += mainwindow.ui
 

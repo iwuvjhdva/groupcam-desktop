@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
+    statusMode = STATUSMODE_AVAILABLE;
     settings = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Bnei Baruch", "groupcam", 0);
     settings->setIniCodec("UTF-8");
 
@@ -31,8 +32,8 @@ MainWindow::MainWindow(QWidget *parent) :
     timers.insert(startTimer(50), TIMER_UI_UPDATE);
 
     this->centralWidget()->layout()->setContentsMargins(0, 0, 0, 0);
-    videoWidget->setFixedSize(settings->value("window/width", 640).toInt(),
-                       settings->value("window/height", 480).toInt());
+    videoWidget->setFixedSize(settings->value("video/width", 640).toInt(),
+                       settings->value("video/height", 480).toInt());
     this->setFixedSize(this->sizeHint());
 
     userNameRegExp = new QRegExp(settings->value("video/username_regexp", ".*scandinavia.*").toString(),
@@ -127,7 +128,7 @@ void MainWindow::startBroadcast()
     {
         VideoCodec codec;
         codec.nCodec = THEORA_CODEC;
-        codec.theora.nQuality = settings->value("video/quality", 20).toInt();
+        codec.theora.nQuality = settings->value("video/quality", 60).toInt();
         codec.theora.nTargetBitRate = 0;
 
         CaptureFormat format;
@@ -139,6 +140,9 @@ void MainWindow::startBroadcast()
 
         if(TT_InitVideoCaptureDevice(ttInst, deviceID, &format, &codec))
         {
+            statusMode |= STATUSMODE_VIDEOTX;
+            TT_DoChangeStatus(ttInst, statusMode, _W(QString("Broadcast started")));
+
             TT_EnableTransmission(ttInst, TRANSMIT_VIDEO, true);
             qDebug() << "Broadcast started";
         } else {

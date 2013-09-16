@@ -56,6 +56,7 @@ private:
     cmdreply_t commands;
 
     VideoWidget *videoWidget;
+    int statusMode;
 
     void timerEvent(QTimerEvent *event);
     bool subscribedToUser(int userID);
