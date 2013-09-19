@@ -23,6 +23,7 @@ private:
     QImage titleImage;
     GLuint titleTexture;
     QRect titleRect;
+    QRegExp *userNameRegExp;
 
     QHash <int, UserWidget*> userWidgets;
 

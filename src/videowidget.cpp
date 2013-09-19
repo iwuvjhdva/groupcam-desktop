@@ -16,6 +16,8 @@ VideoWidget::VideoWidget(QWidget *parent, QSettings *settings) :
     QGLWidget(QGLFormat(QGL::SampleBuffers), parent)
 {
     this->settings = settings;
+    userNameRegExp = new QRegExp(settings->value("video/username_regexp", ".*scandinavia.*").toString(),
+                                 Qt::CaseInsensitive);
 }
 
 VideoWidget::~VideoWidget()
@@ -30,6 +32,8 @@ VideoWidget::~VideoWidget()
     qDeleteAll(this->userWidgets.values());
 
     glDeleteTextures(1, &titleTexture);
+
+    delete userNameRegExp;
 }
 
 void VideoWidget::initializeGL()
@@ -119,6 +123,11 @@ void VideoWidget::drawTitle()
                    titleRect);
 }
 
+bool userLessThan(UserWidget *user1, UserWidget *user2)
+{
+    return user1->name < user2->name;
+}
+
 void VideoWidget::updateUsers()
 {
     if (this->userWidgets.isEmpty())
@@ -153,7 +162,8 @@ void VideoWidget::updateUsers()
     int left = width() - (displayWidth + widgetWidth * columnsNumber)/2;
     int top = height() - (displayHeight + widgetHeight * rowsNumber)/2 - padding;
 
-    QList <UserWidget*> widgetList = this->userWidgets.values();
+    QList <UserWidget *> widgetList = this->userWidgets.values();
+    qSort(widgetList.begin(), widgetList.end(), userLessThan);
 
     for(int index = 0; index < widgetList.size(); ++index)
     {
@@ -214,15 +224,24 @@ void VideoWidget::getUserFrame(int userID, int framesCount)
 {
     Q_UNUSED(framesCount);
 
-    UserWidget *userWidget;
+    User user;
+    TT_GetUser(ttInst, userID, &user);
+    QString name = _Q(user.szNickname);
 
-    if (this->userWidgets.contains(userID))
-        userWidget = userWidgets[userID];
-    else {
-        userWidget = new UserWidget(userID);
-        this->userWidgets.insert(userID, userWidget);
+    if (userNameRegExp->exactMatch(name))
+    {
+        UserWidget *userWidget;
+
+        if (this->userWidgets.contains(userID))
+            userWidget = userWidgets[userID];
+        else {
+            userWidget = new UserWidget(userID);
+            this->userWidgets.insert(userID, userWidget);
+        }
+
+        userWidget->name = name;
+
+        if (userWidget->update())
+            this->update();
     }
-
-    if (userWidget->update())
-        this->update();
 }

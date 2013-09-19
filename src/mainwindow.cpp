@@ -14,7 +14,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    statusMode = STATUSMODE_AVAILABLE;
+    statusMode = STATUSMODE_AVAILABLE | STATUSMODE_FEMALE;
     settings = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Bnei Baruch", "groupcam", 0);
     settings->setIniCodec("UTF-8");
 
@@ -35,9 +35,6 @@ MainWindow::MainWindow(QWidget *parent) :
     videoWidget->setFixedSize(settings->value("video/width", 640).toInt(),
                        settings->value("video/height", 480).toInt());
     this->setFixedSize(this->sizeHint());
-
-    userNameRegExp = new QRegExp(settings->value("video/username_regexp", ".*scandinavia.*").toString(),
-                                 Qt::CaseInsensitive);
 
     qDebug() << "Window ID: " << this->videoWidget->winId();
     startBroadcast();
@@ -84,7 +81,8 @@ void MainWindow::timerEvent(QTimerEvent *event)
     }
 }
 
-void MainWindow::connectServer() {
+void MainWindow::connectServer()
+{
     if(TT_GetFlags(ttInst) & CLIENT_CONNECTION)
         return;
 
@@ -161,6 +159,8 @@ void MainWindow::commandProcessing(int commandID, bool complete)
         {
             case CMD_COMPLETE_LOGIN:
                 {
+                    TT_DoChangeStatus(ttInst, statusMode, _W(QString("groupcam")));
+
                     QString path = settings->value("server/channel_path").toString();
                     int channelID = TT_GetChannelIDFromPath(ttInst, _W(path));
 
@@ -222,8 +222,7 @@ void MainWindow::processTTMessage(const TTMessage& msg)
             disconnectServer();
             break;
         case WM_TEAMTALK_USER_VIDEOFRAME:
-            if (subscribedToUser(msg.wParam))
-                videoWidget->getUserFrame(msg.wParam, msg.lParam);
+            videoWidget->getUserFrame(msg.wParam, msg.lParam);
             break;
         case WM_TEAMTALK_CMD_PROCESSING:
             commandProcessing(msg.wParam, msg.lParam);
@@ -241,22 +240,16 @@ void MainWindow::processTTMessage(const TTMessage& msg)
     }
 }
 
-bool MainWindow::subscribedToUser(int userID)
+void MainWindow::disconnectServer()
 {
-    User user;
-    TT_GetUser(ttInst, userID, &user);
-    return userNameRegExp->exactMatch(_Q(user.szNickname));
-}
-
-void MainWindow::disconnectServer() {
     TT_Disconnect(ttInst);
 }
 
 
-MainWindow::~MainWindow() {
+MainWindow::~MainWindow()
+{
     delete videoWidget;
     delete layout;
     delete ui;
     delete settings;
-    delete userNameRegExp;
 }

@@ -47,7 +47,6 @@ private:
     QGridLayout *layout;
 
     QSettings *settings;
-    QRegExp *userNameRegExp;
 
     typedef QMap<int, TimerEvent> timers_t;
     timers_t timers;
@@ -59,7 +58,6 @@ private:
     int statusMode;
 
     void timerEvent(QTimerEvent *event);
-    bool subscribedToUser(int userID);
 };
 
 #endif // MAINWINDOW_H
