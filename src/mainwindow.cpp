@@ -15,7 +15,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->setupUi(this);
 
     statusMode = STATUSMODE_AVAILABLE | STATUSMODE_FEMALE;
-    settings = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Bnei Baruch", "groupcam", 0);
+    userID = 0;
+
+    if (QApplication::arguments().length() > 1)
+        settings = new QSettings(QApplication::arguments()[1], QSettings::IniFormat);
+    else
+        settings = new QSettings(QSettings::IniFormat, QSettings::UserScope, "Bnei Baruch", "groupcam", 0);
+
     settings->setIniCodec("UTF-8");
 
     videoWidget = new VideoWidget(this, settings);
@@ -122,7 +128,7 @@ void MainWindow::startBroadcast()
 
     if (!deviceID)
         qDebug() << QString("Device \"%1\" not found").arg(deviceName);
-    else
+    else if (settings->value("video/start_broadcast", true).toBool())
     {
         VideoCodec codec;
         codec.nCodec = THEORA_CODEC;
@@ -215,6 +221,7 @@ void MainWindow::processTTMessage(const TTMessage& msg)
             qDebug() << "Connection to server lost, reconnecting...";
             break;
         case WM_TEAMTALK_CMD_MYSELF_LOGGEDIN:
+            userID = msg.wParam;
             qDebug() << "Logged in to server";
             break;
         case WM_TEAMTALK_CMD_MYSELF_LOGGEDOUT:
@@ -222,7 +229,8 @@ void MainWindow::processTTMessage(const TTMessage& msg)
             disconnectServer();
             break;
         case WM_TEAMTALK_USER_VIDEOFRAME:
-            videoWidget->getUserFrame(msg.wParam, msg.lParam);
+            if (msg.wParam != userID)
+                videoWidget->getUserFrame(msg.wParam, msg.lParam);
             break;
         case WM_TEAMTALK_CMD_PROCESSING:
             commandProcessing(msg.wParam, msg.lParam);

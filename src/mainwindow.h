@@ -56,6 +56,7 @@ private:
 
     VideoWidget *videoWidget;
     int statusMode;
+    unsigned int userID;
 
     void timerEvent(QTimerEvent *event);
 };
