@@ -224,6 +224,9 @@ void VideoWidget::getUserFrame(int userID, int framesCount)
 {
     Q_UNUSED(framesCount);
 
+    if (userID == 0)
+        return;
+
     User user;
     TT_GetUser(ttInst, userID, &user);
     QString name = _Q(user.szNickname);

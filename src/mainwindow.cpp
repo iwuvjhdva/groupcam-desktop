@@ -221,7 +221,7 @@ void MainWindow::processTTMessage(const TTMessage& msg)
             qDebug() << "Connection to server lost, reconnecting...";
             break;
         case WM_TEAMTALK_CMD_MYSELF_LOGGEDIN:
-            userID = msg.wParam;
+            this->userID = msg.wParam;
             qDebug() << "Logged in to server";
             break;
         case WM_TEAMTALK_CMD_MYSELF_LOGGEDOUT:
@@ -229,7 +229,7 @@ void MainWindow::processTTMessage(const TTMessage& msg)
             disconnectServer();
             break;
         case WM_TEAMTALK_USER_VIDEOFRAME:
-            if (msg.wParam != userID)
+            if (msg.wParam != this->userID)
                 videoWidget->getUserFrame(msg.wParam, msg.lParam);
             break;
         case WM_TEAMTALK_CMD_PROCESSING:
